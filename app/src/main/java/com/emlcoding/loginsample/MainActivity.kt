@@ -5,11 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.animation.AnimatedContentScope.SlideDirection.Companion.Up
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.keyframes
-import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,6 +26,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.emlcoding.loginsample.ui.theme.LoginSampleTheme
+import kotlin.math.min
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,17 +56,13 @@ fun Login() {
     }
 
     // Para tener una animacion infinita con el color de fondo de los componentes de Login
-    val infiniteTransition = rememberInfiniteTransition()
-    val bgColor by infiniteTransition.animateColor(
-        initialValue = Color.White,
-        targetValue = Color.LightGray,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 1000
-            },
-            repeatMode = RepeatMode.Reverse // Para que cuando termine la animacion la haga al reves en vez de reiniciarla
-        )
-    )
+    val transition = updateTransition(targetState = count, label = "update transition")
+    val borderDp by transition.animateDp(label = "transition dp") {
+        it.dp
+    }
+    val bgColor by transition.animateColor(label = "transition color") {
+        Color.Red.copy(alpha = min(1f, it / 10f))
+    }
 
     Box(
         contentAlignment = Alignment.Center
@@ -78,6 +73,7 @@ fun Login() {
             modifier = Modifier
                 .wrapContentSize()
                 .background(bgColor)
+                .border(borderDp, Color.Red)
                 .padding(16.dp)
         ) {
             TextField(
