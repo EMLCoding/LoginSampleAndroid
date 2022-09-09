@@ -3,6 +3,9 @@ package com.emlcoding.loginsample
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -79,14 +82,20 @@ fun Login() {
                 }
             }
         )
-        if (validationMessage.isNotEmpty()) {
+        AnimatedVisibility(
+            visible = validationMessage.isNotEmpty(),
+            // Se añade el parametro initialOffsetX para que en vez de que aparezca el texto por la izquierda lo haga por la derecha
+            enter = slideInHorizontally(initialOffsetX = { 2 * it })
+        ) {
             Text(text = validationMessage, color = MaterialTheme.colors.error)
         }
-        Button(
-            onClick = login,
-            enabled = loginEnabled
-        ) {
-            Text(text = "Login")
+
+        AnimatedVisibility(visible = loginEnabled) {
+            Button(
+                onClick = login
+            ) {
+                Text(text = "Login")
+            }
         }
     }
 }
@@ -94,7 +103,7 @@ fun Login() {
 fun validateLogin(user: String, pass: String): String = when {
         !user.contains('@') -> "User must be a valid email"
         pass.length < 5 -> "Password must have at least 5 characters"
-        else -> "Success"
+        else -> ""
 }
 
 @Composable
