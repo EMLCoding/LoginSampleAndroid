@@ -3,10 +3,8 @@ package com.emlcoding.loginsample
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContentScope.SlideDirection.Companion.Up
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,17 +36,21 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun Login() {
     var user by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
     var validationMessage by remember { mutableStateOf("") }
+    var count by remember { mutableStateOf(0) }
     var passVisible by remember { mutableStateOf(false) }
     
     val loginEnabled = user.isNotEmpty() && pass.isNotEmpty()
     val isError = validationMessage.isNotEmpty()
 
-    val login = { validationMessage = validateLogin(user, pass) }
+    val login = {
+        validationMessage = validateLogin(user, pass)
+    }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -91,6 +93,17 @@ fun Login() {
                 }
             }
         )
+        
+        AnimatedContent(
+            targetState = count,
+            transitionSpec = {
+                slideIntoContainer(Up) + fadeIn() with
+                        slideOutOfContainer(Up) + fadeOut()
+            }
+        ) {
+            Text(text = "Num of clicks: $it")    
+        }
+        
         AnimatedVisibility(
             visible = validationMessage.isNotEmpty(),
             // Se añade el parametro initialOffsetX para que en vez de que aparezca el texto por la izquierda lo haga por la derecha
@@ -101,7 +114,10 @@ fun Login() {
 
         AnimatedVisibility(visible = loginEnabled) {
             Button(
-                onClick = login
+                onClick = {
+                    login()
+                    count++
+                }
             ) {
                 Text(text = "Login")
             }
