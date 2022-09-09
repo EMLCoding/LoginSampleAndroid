@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.layout.Arrangement
@@ -78,7 +79,15 @@ fun Login() {
             visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 IconToggleButton(checked = passVisible, onCheckedChange = { passVisible = it }) {
-                    Icon(imageVector = if(passVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, contentDescription = "Change password visibility")
+                    Crossfade(targetState = passVisible) { visible ->
+                        if (visible) {
+                            Icon(imageVector = Icons.Default.VisibilityOff, contentDescription = "Change password visibility")
+                        } else {
+                            Icon(imageVector = Icons.Default.Visibility, contentDescription = "Change password visibility")
+                        }
+                    }
+
+
                 }
             }
         )
