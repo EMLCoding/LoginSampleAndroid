@@ -5,9 +5,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
 import androidx.compose.animation.AnimatedContentScope.SlideDirection.Companion.Up
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -17,6 +20,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -52,77 +56,99 @@ fun Login() {
         validationMessage = validateLogin(user, pass)
     }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)
+    // Para tener una animacion infinita con el color de fondo de los componentes de Login
+    val infiniteTransition = rememberInfiniteTransition()
+    val bgColor by infiniteTransition.animateColor(
+        initialValue = Color.White,
+        targetValue = Color.LightGray,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 1000
+            },
+            repeatMode = RepeatMode.Reverse // Para que cuando termine la animacion la haga al reves en vez de reiniciarla
+        )
+    )
+
+    Box(
+        contentAlignment = Alignment.Center
     ) {
-        TextField(
-            value = user,
-            onValueChange = { user = it },
-            isError = isError,
-            label = { Text("User") },
-            placeholder = { Text("Use your best email") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+            modifier = Modifier
+                .wrapContentSize()
+                .background(bgColor)
+                .padding(16.dp)
+        ) {
+            TextField(
+                value = user,
+                onValueChange = { user = it },
+                isError = isError,
+                label = { Text("User") },
+                placeholder = { Text("Use your best email") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                )
             )
-        )
-        TextField(
-            value = pass,
-            onValueChange = { pass = it },
-            isError = isError,
-            label = { Text("Password") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password
-            ),
-            keyboardActions = KeyboardActions { login() },
-            visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconToggleButton(checked = passVisible, onCheckedChange = { passVisible = it }) {
-                    Crossfade(targetState = passVisible) { visible ->
-                        if (visible) {
-                            Icon(imageVector = Icons.Default.VisibilityOff, contentDescription = "Change password visibility")
-                        } else {
-                            Icon(imageVector = Icons.Default.Visibility, contentDescription = "Change password visibility")
+            TextField(
+                value = pass,
+                onValueChange = { pass = it },
+                isError = isError,
+                label = { Text("Password") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password
+                ),
+                keyboardActions = KeyboardActions { login() },
+                visualTransformation = if (passVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconToggleButton(checked = passVisible, onCheckedChange = { passVisible = it }) {
+                        Crossfade(targetState = passVisible) { visible ->
+                            if (visible) {
+                                Icon(imageVector = Icons.Default.VisibilityOff, contentDescription = "Change password visibility")
+                            } else {
+                                Icon(imageVector = Icons.Default.Visibility, contentDescription = "Change password visibility")
+                            }
                         }
+
+
                     }
-
-
                 }
-            }
-        )
-        
-        AnimatedContent(
-            targetState = count,
-            transitionSpec = {
-                slideIntoContainer(Up) + fadeIn() with
-                        slideOutOfContainer(Up) + fadeOut()
-            }
-        ) {
-            Text(text = "Num of clicks: $it")    
-        }
-        
-        AnimatedVisibility(
-            visible = validationMessage.isNotEmpty(),
-            // Se añade el parametro initialOffsetX para que en vez de que aparezca el texto por la izquierda lo haga por la derecha
-            enter = slideInHorizontally(initialOffsetX = { 2 * it })
-        ) {
-            Text(text = validationMessage, color = MaterialTheme.colors.error)
-        }
+            )
 
-        AnimatedVisibility(visible = loginEnabled) {
-            Button(
-                onClick = {
-                    login()
-                    count++
+            AnimatedContent(
+                targetState = count,
+                transitionSpec = {
+                    slideIntoContainer(Up) + fadeIn() with
+                            slideOutOfContainer(Up) + fadeOut()
                 }
             ) {
-                Text(text = "Login")
+                Text(text = "Num of clicks: $it")
+            }
+
+            AnimatedVisibility(
+                visible = validationMessage.isNotEmpty(),
+                // Se añade el parametro initialOffsetX para que en vez de que aparezca el texto por la izquierda lo haga por la derecha
+                enter = slideInHorizontally(initialOffsetX = { 2 * it })
+            ) {
+                Text(text = validationMessage, color = MaterialTheme.colors.error)
+            }
+
+            AnimatedVisibility(visible = loginEnabled) {
+                Button(
+                    onClick = {
+                        login()
+                        count++
+                    }
+                ) {
+                    Text(text = "Login")
+                }
             }
         }
     }
+
 }
 
 fun validateLogin(user: String, pass: String): String = when {
